@@ -119,11 +119,11 @@
     box.style.position = 'relative';
     const q = deck[qi];
     box.innerHTML =
-      `<p class="sub" style="font-size:1rem">Session ${si + 1} - Question ${qi + 1} of 5 · <b id="tm">${Q_TIME}s</b></p>` +
+      `<div class="bar" style="padding:0 0 8px"><p class="sub" style="margin:0;font-size:1rem">Session ${si + 1} · Q${qi + 1}/5</p><b id="tm" style="font-size:1.1rem;color:var(--p)">${Q_TIME}s</b></div>` +
       `<div class="bar2"><i style="width:${qi * 20}%"></i></div>` +
       `<h3 class="q" style="font-size:1.25rem">${q.t}</h3>` +
-      q.o.map((o, i) => `<button class="opt" data-o="${i}" style="font-size:1rem"><span style="flex:1">${o.t}</span><span class="mk" data-mk="${i}"></span></button>`).join('') +
-      `<p id="fb" class="fb" style="font-size:1rem"></p><div id="nx"></div>`;
+      q.o.map((o, i) => `<button class="opt" data-o="${i}" style="font-size:1rem;display:flex;align-items:center;gap:12px"><span style="flex:1">${o.t}</span><span class="mk" data-mk="${i}" style="display:flex;width:24px;height:24px"></span></button>`).join('') +
+      `<p id="fb" class="fb" style="font-size:1rem"></p>`;
     startTimer();
   }
 
@@ -134,7 +134,11 @@
     tick = setInterval(() => {
       remaining--;
       const t = IG.$('#tm');
-      if (t) t.textContent = remaining + 's';
+      if (t) {
+        t.textContent = remaining + 's';
+        if (remaining <= 5) t.style.color = 'var(--er)';
+        else if (remaining <= 10) t.style.color = '#fbbc04';
+      }
       if (remaining <= 0) {
         clearInterval(tick);
         if (!locked) answer(-1);
@@ -170,44 +174,44 @@
     showVerse(q);
   }
 
-function showVerse(q) {
-  const ov = document.createElement('div');
-  ov.className = 'ov';
-  ov.style.cssText = 'inset:0;padding:0;background:rgba(0,0,0,.72);z-index:10;justify-content:stretch;align-items:stretch';
-  ov.innerHTML =
-    `<div class="card" data-stop style="position:relative;width:100%;height:100%;border-radius:0;border:0;background:var(--sf);color:var(--tx);display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 20px) 20px calc(env(safe-area-inset-bottom) + 20px);margin:0;cursor:default">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex:0 0 auto">
-        <p class="role" style="margin:0;color:var(--p);font-weight:600;font-size:1.05rem">${q.vr}</p>
-        <button class="ib" data-close aria-label="Close" style="width:48px;height:48px;color:var(--st);flex:0 0 auto">${CLOSE}</button>
-      </div>
-      <div style="flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;padding:12px 0">
-        <p style="font-size:1.15rem;line-height:1.6;margin:0;max-width:100%">${q.v}</p>
-      </div>
-      <div class="bar2" style="margin:0;flex:0 0 auto"><i style="width:100%;transition:width ${VERSE_TIME}ms linear"></i></div>
-    </div>`;
-  box.appendChild(ov);
-  requestAnimationFrame(() => {
-    const bar = ov.querySelector('.bar2 i');
-    if (bar) bar.style.width = '0%';
-  });
-  verseOpen = ov;
+  function showVerse(q) {
+    const ov = document.createElement('div');
+    ov.className = 'ov';
+    ov.style.cssText = 'inset:0;padding:0;background:rgba(0,0,0,.72);z-index:10;display:flex;flex-direction:column;justify-content:stretch;align-items:stretch';
+    ov.innerHTML =
+      `<div class="card" data-stop style="position:relative;width:100%;height:100%;border-radius:0;border:0;background:var(--sf);color:var(--tx);display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 20px) 20px calc(env(safe-area-inset-bottom) + 20px);margin:0;cursor:default">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex:0 0 auto">
+          <p class="role" style="margin:0;color:var(--p);font-weight:600;font-size:1.05rem">${q.vr}</p>
+          <button class="ib" data-close aria-label="Close" style="width:48px;height:48px;color:var(--st);flex:0 0 auto">${CLOSE}</button>
+        </div>
+        <div style="flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;padding:12px 0;overflow-y:auto">
+          <p style="font-size:1.15rem;line-height:1.6;margin:0">${q.v}</p>
+        </div>
+        <div class="bar2" style="margin:0;flex:0 0 auto"><i style="width:100%;transition:width ${VERSE_TIME}ms linear"></i></div>
+      </div>`;
+    box.appendChild(ov);
+    requestAnimationFrame(() => {
+      const bar = ov.querySelector('.bar2 i');
+      if (bar) bar.style.width = '0%';
+    });
+    verseOpen = ov;
 
-  const dismiss = () => {
-    if (verseOpen !== ov) return;
-    verseOpen = null;
-    clearTimeout(verseTO);
-    ov.remove();
-    qi++;
-    qi < 5 ? ask() : done();
-  };
+    const dismiss = () => {
+      if (verseOpen !== ov) return;
+      verseOpen = null;
+      clearTimeout(verseTO);
+      ov.remove();
+      qi++;
+      qi < 5 ? ask() : done();
+    };
 
-  ov.addEventListener('click', e => {
-    if (e.target.closest('[data-stop]') && !e.target.closest('[data-close]')) return;
-    dismiss();
-  });
+    ov.addEventListener('click', e => {
+      if (e.target.closest('[data-stop]') && !e.target.closest('[data-close]')) return;
+      dismiss();
+    });
 
-  verseTO = setTimeout(dismiss, VERSE_TIME);
-}
+    verseTO = setTimeout(dismiss, VERSE_TIME);
+  }
 
   function done() {
     clearAll();
