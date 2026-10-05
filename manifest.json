@@ -1,0 +1,17 @@
+{
+  "name": "Inspiration Games",
+  "short_name": "Inspiration",
+  "description": "Play Bible quizzes and faith-filled games.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {"src": "https://YOUR-DOMAIN/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "https://YOUR-DOMAIN/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "https://YOUR-DOMAIN/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
