@@ -171,40 +171,43 @@
   }
 
   function showVerse(q) {
-    const ov = document.createElement('div');
-    ov.className = 'ov';
-    ov.style.cssText = 'background:rgba(0,0,0,.72);z-index:10;padding:24px;justify-content:center;align-items:stretch;cursor:pointer';
-    ov.innerHTML =
-      `<div class="card" style="position:relative;width:100%;max-width:640px;margin:auto;background:var(--sf);color:var(--tx);text-align:left;cursor:default" data-stop>
-        <button class="ib" data-close aria-label="Close" style="position:absolute;top:8px;right:8px;width:48px;height:48px;color:var(--st)">${CLOSE}</button>
-        <p class="role" style="margin:0 24px 10px 0;color:var(--p);font-weight:600;font-size:1rem">${q.vr}</p>
-        <p style="font-size:1.05rem;line-height:1.5;margin:0 0 18px">${q.v}</p>
-        <div class="bar2" style="margin:0"><i style="width:100%;transition:width ${VERSE_TIME}ms linear"></i></div>
-      </div>`;
-    box.appendChild(ov);
-    requestAnimationFrame(() => {
-      const bar = ov.querySelector('.bar2 i');
-      if (bar) bar.style.width = '0%';
-    });
-    verseOpen = ov;
+  const ov = document.createElement('div');
+  ov.className = 'ov';
+  ov.style.cssText = 'inset:0;padding:0;background:rgba(0,0,0,.72);z-index:10;justify-content:stretch;align-items:stretch';
+  ov.innerHTML =
+    `<div class="card" data-stop style="position:relative;width:100%;height:100%;border-radius:0;border:0;background:var(--sf);color:var(--tx);display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 20px) 20px calc(env(safe-area-inset-bottom) + 20px);margin:0;cursor:default">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex:0 0 auto">
+        <p class="role" style="margin:0;color:var(--p);font-weight:600;font-size:1.05rem">${q.vr}</p>
+        <button class="ib" data-close aria-label="Close" style="width:48px;height:48px;color:var(--st);flex:0 0 auto">${CLOSE}</button>
+      </div>
+      <div style="flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;padding:12px 0">
+        <p style="font-size:1.15rem;line-height:1.6;margin:0;max-width:100%">${q.v}</p>
+      </div>
+      <div class="bar2" style="margin:0;flex:0 0 auto"><i style="width:100%;transition:width ${VERSE_TIME}ms linear"></i></div>
+    </div>`;
+  box.appendChild(ov);
+  requestAnimationFrame(() => {
+    const bar = ov.querySelector('.bar2 i');
+    if (bar) bar.style.width = '0%';
+  });
+  verseOpen = ov;
 
-    const dismiss = () => {
-      if (verseOpen !== ov) return;
-      verseOpen = null;
-      clearTimeout(verseTO);
-      ov.remove();
-      qi++;
-      qi < 5 ? ask() : done();
-    };
+  const dismiss = () => {
+    if (verseOpen !== ov) return;
+    verseOpen = null;
+    clearTimeout(verseTO);
+    ov.remove();
+    qi++;
+    qi < 5 ? ask() : done();
+  };
 
-    ov.addEventListener('click', e => {
-      if (e.target.closest('[data-stop]') && !e.target.closest('[data-close]')) return;
-      dismiss();
-    });
+  ov.addEventListener('click', e => {
+    if (e.target.closest('[data-stop]') && !e.target.closest('[data-close]')) return;
+    dismiss();
+  });
 
-    verseTO = setTimeout(dismiss, VERSE_TIME);
-  }
-
+  verseTO = setTimeout(dismiss, VERSE_TIME);
+}
   function done() {
     clearAll();
     const win = sc >= 4;
