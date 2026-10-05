@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inspiration Games</title>
+<style>html{font-size:19px}body{font-family:Roboto,system-ui,sans-serif;display:flex;align-items:center;justify-content:center;height:100dvh;text-align:center;padding:24px;background:#f6f8fc;color:#1f1f1f}a{color:#1a73e8}</style>
+<script>
+var R=['home','quiz','2d','3d'],p=location.pathname.replace(/\/+$/,''),b=p.slice(0,p.lastIndexOf('/')+1),s=(p.split('/').pop()||'').replace(/\.html$/,'');
+location.replace(b+(R.indexOf(s)>-1?'#'+s:''));
+</script></head>
+<body><p>Opening Inspiration Games... <a href="./">Tap here if nothing happens</a></p></body></html>
