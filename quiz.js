@@ -7,7 +7,6 @@
   const Q_TIME = 25;
   const VERSE_TIME = 5000;
 
-  // 5 sessions · 5 questions · full verse + reference per question
   const S = [
     { n:'The Basics', qs:[
       ['How many books are in the Old Testament?',['27','39','66','46'],1,
@@ -71,8 +70,12 @@
     ]}
   ];
 
+  const CHECK = '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>';
+  const CROSS = '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg>';
+  const CLOSE = '<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg>';
+
   let st = IG.ls(K, {}) || {};
-  let si, qi, sc, deck, locked, tick, remaining, verseTO;
+  let si, qi, sc, deck, locked, tick, remaining, verseTO, verseOpen;
 
   const ic = n => `<svg class="i"><use href="#i-${n}"/></svg>`;
   const sh = a => {
@@ -83,14 +86,16 @@
     }
     return a;
   };
-  const clearAll = () => { clearInterval(tick); clearTimeout(verseTO); };
+  const clearAll = () => { clearInterval(tick); clearTimeout(verseTO); verseOpen = null; };
 
   function menu() {
     clearAll();
+    box.style.position = 'relative';
     box.innerHTML = `<p class="sub">5 sessions of 5 questions. Score 4 or more to win a badge. Score 5 for gold.</p><div class="grid">` +
       S.map((s, i) => {
         const b = st[i];
-        return `<button class="sess" data-s="${i}"><span class="bd ${b >= 5 ? 'gold' : b >= 4 ? 'won' : ''}">${ic('star')}</span><b>Session ${i + 1}</b><span>${s.n}</span><span>${b == null ? 'Not played' : 'Best: ' + b + '/5'}</span></button>`;
+        const hue = i * 60;
+        return `<button class="sess" data-s="${i}"><span class="bd ${b >= 5 ? 'gold' : b >= 4 ? 'won' : ''}" style="filter:hue-rotate(${hue}deg)">${ic('star')}</span><b>Session ${i + 1}</b><span>${s.n}</span><span>${b == null ? 'Not played' : 'Best: ' + b + '/5'}</span></button>`;
       }).join('') + `</div>`;
   }
 
@@ -111,13 +116,14 @@
   function ask() {
     clearAll();
     locked = false;
+    box.style.position = 'relative';
     const q = deck[qi];
     box.innerHTML =
-      `<p class="sub">Session ${si + 1} - Question ${qi + 1} of 5 · <b id="tm">${Q_TIME}s</b></p>` +
+      `<p class="sub" style="font-size:1rem">Session ${si + 1} - Question ${qi + 1} of 5 · <b id="tm">${Q_TIME}s</b></p>` +
       `<div class="bar2"><i style="width:${qi * 20}%"></i></div>` +
-      `<h3 class="q">${q.t}</h3>` +
-      q.o.map((o, i) => `<button class="opt" data-o="${i}">${o.t}</button>`).join('') +
-      `<p id="fb" class="fb"></p><div id="nx"></div>`;
+      `<h3 class="q" style="font-size:1.25rem">${q.t}</h3>` +
+      q.o.map((o, i) => `<button class="opt" data-o="${i}" style="font-size:1rem"><span style="flex:1">${o.t}</span><span class="mk" data-mk="${i}"></span></button>`).join('') +
+      `<p id="fb" class="fb" style="font-size:1rem"></p><div id="nx"></div>`;
     startTimer();
   }
 
@@ -144,14 +150,22 @@
     let ok = false;
     box.querySelectorAll('.opt').forEach((el, i) => {
       el.disabled = true;
-      if (q.o[i].c) { el.classList.add('ok'); if (i === idx) ok = true; }
-      else if (i === idx) el.classList.add('no');
+      const mk = el.querySelector('.mk');
+      if (q.o[i].c) {
+        el.classList.add('ok');
+        if (mk) mk.innerHTML = CHECK;
+        if (i === idx) ok = true;
+      } else if (i === idx) {
+        el.classList.add('no');
+        if (mk) mk.innerHTML = CROSS;
+      }
     });
     if (ok) sc++;
     const fb = IG.$('#fb');
     if (fb) {
       fb.textContent = idx < 0 ? 'Time up! The right answer is highlighted.' : ok ? 'Correct!' : 'Not quite. The right answer is highlighted.';
       fb.className = 'fb ' + (ok ? 'g' : 'r');
+      fb.style.fontSize = '1rem';
     }
     showVerse(q);
   }
@@ -159,24 +173,36 @@
   function showVerse(q) {
     const ov = document.createElement('div');
     ov.className = 'ov';
-    ov.style.cssText = 'background:rgba(0,0,0,.72);z-index:10;padding:28px;text-align:center';
+    ov.style.cssText = 'background:rgba(0,0,0,.72);z-index:10;padding:24px;justify-content:center;align-items:stretch;cursor:pointer';
     ov.innerHTML =
-      `<div class="card" style="max-width:560px;width:100%;background:var(--sf);color:var(--tx);text-align:left">` +
-        `<p class="role" style="margin:0 0 8px;color:var(--p);font-weight:600">${q.vr}</p>` +
-        `<p style="line-height:1.5;margin:0 0 14px">${q.v}</p>` +
-        `<div class="bar2" style="margin:0"><i style="width:100%;transition:width ${VERSE_TIME}ms linear"></i></div>` +
-      `</div>`;
-    box.style.position = 'relative';
+      `<div class="card" style="position:relative;width:100%;max-width:640px;margin:auto;background:var(--sf);color:var(--tx);text-align:left;cursor:default" data-stop>
+        <button class="ib" data-close aria-label="Close" style="position:absolute;top:8px;right:8px;width:48px;height:48px;color:var(--st)">${CLOSE}</button>
+        <p class="role" style="margin:0 24px 10px 0;color:var(--p);font-weight:600;font-size:1rem">${q.vr}</p>
+        <p style="font-size:1.05rem;line-height:1.5;margin:0 0 18px">${q.v}</p>
+        <div class="bar2" style="margin:0"><i style="width:100%;transition:width ${VERSE_TIME}ms linear"></i></div>
+      </div>`;
     box.appendChild(ov);
     requestAnimationFrame(() => {
       const bar = ov.querySelector('.bar2 i');
       if (bar) bar.style.width = '0%';
     });
-    verseTO = setTimeout(() => {
+    verseOpen = ov;
+
+    const dismiss = () => {
+      if (verseOpen !== ov) return;
+      verseOpen = null;
+      clearTimeout(verseTO);
       ov.remove();
       qi++;
       qi < 5 ? ask() : done();
-    }, VERSE_TIME);
+    };
+
+    ov.addEventListener('click', e => {
+      if (e.target.closest('[data-stop]') && !e.target.closest('[data-close]')) return;
+      dismiss();
+    });
+
+    verseTO = setTimeout(dismiss, VERSE_TIME);
   }
 
   function done() {
@@ -191,12 +217,12 @@
     }
     box.innerHTML =
       `<div class="res">` +
-        `<div class="bd big ${sc >= 5 ? 'gold' : win ? 'won' : ''}">${ic('star')}</div>` +
-        `<h2>${win ? (sc >= 5 ? 'Perfect score!' : 'You won!') : 'Keep going!'}</h2>` +
-        `<p class="sub">You scored ${sc} out of 5.${win ? ' Badge earned.' : ' Score 4 or more to earn the badge.'}</p>` +
-        (win && si < 4 ? `<button class="btn" data-s="${si + 1}">Next session</button>` : '') +
-        `<button class="btn ${win && si < 4 ? 't' : ''}" data-a="retry">Play again</button>` +
-        `<button class="btn t" data-a="menu">All sessions</button>` +
+        `<div class="bd big ${sc >= 5 ? 'gold' : win ? 'won' : ''}" style="filter:hue-rotate(${si * 60}deg)">${ic('star')}</div>` +
+        `<h2 style="font-size:1.5rem">${win ? (sc >= 5 ? 'Perfect score!' : 'You won!') : 'Keep going!'}</h2>` +
+        `<p class="sub" style="font-size:1rem">You scored ${sc} out of 5.${win ? ' Badge earned.' : ' Score 4 or more to earn the badge.'}</p>` +
+        (win && si < 4 ? `<button class="btn" data-s="${si + 1}" style="min-height:54px">Next session</button>` : '') +
+        `<button class="btn ${win && si < 4 ? 't' : ''}" data-a="retry" style="min-height:54px">Play again</button>` +
+        `<button class="btn t" data-a="menu" style="min-height:54px">All sessions</button>` +
       `</div>`;
   }
 
