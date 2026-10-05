@@ -170,7 +170,7 @@
     showVerse(q);
   }
 
-  function showVerse(q) {
+function showVerse(q) {
   const ov = document.createElement('div');
   ov.className = 'ov';
   ov.style.cssText = 'inset:0;padding:0;background:rgba(0,0,0,.72);z-index:10;justify-content:stretch;align-items:stretch';
@@ -208,6 +208,7 @@
 
   verseTO = setTimeout(dismiss, VERSE_TIME);
 }
+
   function done() {
     clearAll();
     const win = sc >= 4;
